@@ -12,7 +12,9 @@ import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
 import model.User;
 import model.Song;
+import model.Artist;
 import db.SongDAO;
+import db.ArtistDAO;
 import java.util.List;
 import java.sql.SQLException;
 
@@ -29,10 +31,12 @@ public class MainPlayer extends Application {
     private Button previousButton;
     private TextField searchField;
     private SongDAO songDAO;
+    private ArtistDAO artistDAO;
 
     public MainPlayer(User user) {
         this.currentUser = user;
         this.songDAO = new SongDAO();
+        this.artistDAO = new ArtistDAO();
     }
 
     @Override
@@ -101,17 +105,7 @@ public class MainPlayer extends Application {
         songListView = new ListView<>();
         songListView.setPrefHeight(400);
         songListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        songListView.setCellFactory(lv -> new ListCell<Song>() {
-            @Override
-            protected void updateItem(Song song, boolean empty) {
-                super.updateItem(song, empty);
-                if (empty || song == null) {
-                    setText(null);
-                } else {
-                    setText(song.getTitle() + " - " + song.getArtist());
-                }
-            }
-        });
+        setupSongListView();
 
         center.getChildren().addAll(searchBox, songListView);
         return center;
@@ -187,26 +181,20 @@ public class MainPlayer extends Application {
 
     private void loadSongs() {
         try {
-            List<Song> songs = songDAO.getAllSongs();
             songListView.getItems().clear();
-            songListView.getItems().addAll(songs);
-        } catch (SQLException e) {
-            showError("Error loading songs: " + e.getMessage());
+            songListView.getItems().addAll(songDAO.getAllSongs());
+        } catch (Exception e) {
+            showError("Error loading songs", e.getMessage());
         }
     }
 
     private void searchSongs() {
-        String searchTerm = searchField.getText().trim();
-        if (!searchTerm.isEmpty()) {
-            try {
-                List<Song> songs = songDAO.searchSongs(searchTerm);
-                songListView.getItems().clear();
-                songListView.getItems().addAll(songs);
-            } catch (SQLException e) {
-                showError("Error searching songs: " + e.getMessage());
-            }
-        } else {
-            loadSongs();
+        try {
+            String query = searchField.getText().trim();
+            songListView.getItems().clear();
+            songListView.getItems().addAll(songDAO.searchSongs(query));
+        } catch (Exception e) {
+            showError("Error searching songs", e.getMessage());
         }
     }
 
@@ -220,21 +208,60 @@ public class MainPlayer extends Application {
             mediaPlayer = new MediaPlayer(media);
             mediaPlayer.setVolume(volumeSlider.getValue());
             mediaPlayer.play();
-            currentSongLabel.setText(song.getTitle() + " - " + song.getArtist());
+            updateSongDisplay(song);
         } catch (Exception e) {
             showError("Error playing song: " + e.getMessage());
         }
     }
 
+    private void updateSongDisplay(Song song) {
+        if (song != null) {
+            try {
+                Artist artist = artistDAO.getArtistById(song.getArtistId());
+                String artistName = artist != null ? artist.getName() : "Unknown Artist";
+                currentSongLabel.setText(song.getTitle() + " - " + artistName);
+            } catch (Exception e) {
+                currentSongLabel.setText(song.getTitle() + " - Unknown Artist");
+            }
+        } else {
+            currentSongLabel.setText("No song selected");
+        }
+    }
+
+    private void setupSongListView() {
+        songListView.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(Song song, boolean empty) {
+                super.updateItem(song, empty);
+                if (empty || song == null) {
+                    setText(null);
+                } else {
+                    try {
+                        Artist artist = artistDAO.getArtistById(song.getArtistId());
+                        String artistName = artist != null ? artist.getName() : "Unknown Artist";
+                        setText(song.getTitle() + " - " + artistName);
+                    } catch (Exception e) {
+                        setText(song.getTitle() + " - Unknown Artist");
+                    }
+                }
+            }
+        });
+    }
+
     private void showError(String message) {
+        showError("Error", message);
+    }
+
+    private void showError(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
+        alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.setContentText(content);
         alert.showAndWait();
     }
 
     public static void main(String[] args) {
         launch(args);
     }
-} 
+}
+

@@ -5,9 +5,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
-    private static final String URL = "jdbc:postgresql://localhost:5432/spotify_clone";
+    private static final String URL = "jdbc:postgresql://localhost:5432/myspotify";
     private static final String USER = "postgres";
-    private static final String PASSWORD = "postgres";
+    private static final String PASSWORD = "kaboodlecat";
     private static Connection connection = null;
 
     public static Connection getConnection() {

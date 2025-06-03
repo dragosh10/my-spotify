@@ -1,6 +1,5 @@
 package ui;
 
-import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -9,19 +8,21 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import model.User;
 import service.AuthService;
-//cd /home/kaboodlecat/Documents/my-spotify/spotify/untitled && mvn clean javafx:run
-public class LoginScreen extends Application {
+
+public class RegisterScreen {
     private TextField usernameField;
     private PasswordField passwordField;
+    private PasswordField confirmPasswordField;
     private final AuthService authService;
+    private final Stage stage;
 
-    public LoginScreen() {
+    public RegisterScreen(Stage stage) {
+        this.stage = stage;
         this.authService = new AuthService();
     }
 
-    @Override
-    public void start(Stage primaryStage) {
-        primaryStage.setTitle("MySpotify - Login");
+    public void show() {
+        stage.setTitle("MySpotify - Register");
 
         // Create the main layout
         VBox mainLayout = new VBox(10);
@@ -30,7 +31,7 @@ public class LoginScreen extends Application {
         mainLayout.setStyle("-fx-background-color: #282828;");
 
         // Create the form elements
-        Label titleLabel = new Label("Welcome to MySpotify");
+        Label titleLabel = new Label("Create Account");
         titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px;");
 
         usernameField = new TextField();
@@ -41,15 +42,17 @@ public class LoginScreen extends Application {
         passwordField.setPromptText("Password");
         passwordField.setMaxWidth(300);
 
-        Button loginButton = new Button("Login");
-        loginButton.setStyle("-fx-background-color: #1DB954; -fx-text-fill: white;");
-        loginButton.setMaxWidth(300);
-        loginButton.setOnAction(e -> handleLogin());
+        confirmPasswordField = new PasswordField();
+        confirmPasswordField.setPromptText("Confirm Password");
+        confirmPasswordField.setMaxWidth(300);
 
-        Button registerButton = new Button("Create Account");
-        registerButton.setStyle("-fx-background-color: #535353; -fx-text-fill: white;");
-        registerButton.setMaxWidth(300);
-        registerButton.setOnAction(e -> showRegisterScreen(primaryStage));
+        Button registerButton = new Button("Register");
+        registerButton.setStyle("-fx-background-color: #1DB954;");
+        registerButton.setOnAction(e -> handleRegister());
+
+        Button backButton = new Button("Back to Login");
+        backButton.setStyle("-fx-background-color: #535353;");
+        backButton.setOnAction(e -> showLoginScreen());
 
         // Add elements to layout
         mainLayout.getChildren().addAll(
@@ -57,38 +60,47 @@ public class LoginScreen extends Application {
             new Separator(),
             usernameField,
             passwordField,
-            loginButton,
-            new Separator(),
-            registerButton
+            confirmPasswordField,
+            registerButton,
+            backButton
         );
 
         // Create and show the scene
         Scene scene = new Scene(mainLayout, 400, 500);
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        stage.setScene(scene);
+        stage.show();
     }
 
-    private void handleLogin() {
+    private void handleRegister() {
         String username = usernameField.getText();
         String password = passwordField.getText();
+        String confirmPassword = confirmPasswordField.getText();
+
+        if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            showError("Registration Error", "Please fill in all fields");
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            showError("Registration Error", "Passwords do not match");
+            return;
+        }
 
         try {
-            User user = authService.login(username, password);
+            User user = authService.register(username, password);
             if (user != null) {
-                // Login successful, start the main player
-                MainPlayer mainPlayer = new MainPlayer(user);
-                Stage stage = (Stage) usernameField.getScene().getWindow();
-                mainPlayer.start(stage);
+                showInfo("Registration Successful", "You can now login with your credentials");
+                showLoginScreen();
             } else {
-                showError("Login Failed", "Invalid username or password");
+                showError("Registration Failed", "Username already exists");
             }
         } catch (Exception e) {
-            showError("Error", "An error occurred during login: " + e.getMessage());
+            showError("Error", "An error occurred during registration: " + e.getMessage());
         }
     }
 
-    private void showRegisterScreen(Stage stage) {
-        new RegisterScreen(stage).show();
+    private void showLoginScreen() {
+        new LoginScreen().start(stage);
     }
 
     private void showError(String title, String content) {
@@ -106,9 +118,4 @@ public class LoginScreen extends Application {
         alert.setContentText(content);
         alert.showAndWait();
     }
-
-    public static void main(String[] args) {
-        launch(args);
-    }
 }
-
