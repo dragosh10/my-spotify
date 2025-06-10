@@ -3,21 +3,21 @@ package model;
 
 public class Album {
     private int albumId;
-    private String title;
-    private int artistId; // Referință către Artist
-    private Integer releaseYear; // Integer pentru a permite NULL
+    private String albumName; // Changed from title to match database
+    private int artistId;
+    private Integer releaseYear;
 
     // Constructor complet, util la citirea din baza de date
-    public Album(int albumId, String title, int artistId, Integer releaseYear) {
+    public Album(int albumId, String albumName, int artistId, Integer releaseYear) {
         this.albumId = albumId;
-        this.title = title;
+        this.albumName = albumName;
         this.artistId = artistId;
         this.releaseYear = releaseYear;
     }
 
     // Constructor pentru crearea unui Album nou, unde ID-ul este generat de DB
-    public Album(String title, int artistId, Integer releaseYear) {
-        this.title = title;
+    public Album(String albumName, int artistId, Integer releaseYear) {
+        this.albumName = albumName;
         this.artistId = artistId;
         this.releaseYear = releaseYear;
     }
@@ -27,8 +27,12 @@ public class Album {
         return albumId;
     }
 
-    public String getTitle() {
-        return title;
+    public String getAlbumName() {
+        return albumName;
+    }
+
+    public String getTitle() {  // Added for compatibility with existing code
+        return albumName;
     }
 
     public int getArtistId() {
@@ -39,13 +43,17 @@ public class Album {
         return releaseYear;
     }
 
-    // Setters (pentru cazurile când ID-ul este generat de DB la inserare sau pentru actualizări)
+    // Setters
     public void setAlbumId(int albumId) {
         this.albumId = albumId;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setAlbumName(String albumName) {
+        this.albumName = albumName;
+    }
+
+    public void setTitle(String title) {  // Added for compatibility with existing code
+        this.albumName = title;
     }
 
     public void setArtistId(int artistId) {
@@ -60,7 +68,7 @@ public class Album {
     public String toString() {
         return "Album{" +
                 "albumId=" + albumId +
-                ", title='" + title + '\'' +
+                ", albumName='" + albumName + '\'' +
                 ", artistId=" + artistId +
                 ", releaseYear=" + releaseYear +
                 '}';

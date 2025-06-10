@@ -136,13 +136,25 @@ public class SongDAO {
 
     public List<Song> getSongsByAlbum(int albumId) {
         List<Song> songs = new ArrayList<>();
-        String sql = "SELECT * FROM songs WHERE album_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        String query = "SELECT * FROM Songs WHERE album_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
             stmt.setInt(1, albumId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    songs.add(extractSongFromResultSet(rs));
-                }
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Duration duration = Duration.ofSeconds(rs.getLong("duration"));
+                Song song = new Song(
+                    rs.getInt("song_id"),
+                    rs.getString("title"),
+                    rs.getInt("artist_id"),
+                    rs.getInt("album_id"),
+                    duration,
+                    rs.getString("file_path")
+                );
+                songs.add(song);
             }
         } catch (SQLException e) {
             e.printStackTrace();

@@ -14,10 +14,12 @@ import model.User;
 import model.Song;
 import model.Artist;
 import model.Playlist;
+import model.Album;
 import db.SongDAO;
 import db.ArtistDAO;
 import db.PlaylistDAO;
 import db.PlaylistSongsDAO;
+import db.AlbumDAO;
 import java.util.List;
 //import java.sql.SQLException;
 //import java.util.Optional;
@@ -29,6 +31,8 @@ public class MainPlayer extends Application {
     private User currentUser;
     private MediaPlayer mediaPlayer;
     private ListView<Song> songListView;
+    private ListView<Album> albumListView;
+    private ListView<Artist> artistListView;
     private Label currentSongLabel;
     private Slider progressSlider;
     private Slider volumeSlider;
@@ -41,13 +45,16 @@ public class MainPlayer extends Application {
     private ArtistDAO artistDAO;
     private PlaylistDAO playlistDAO;
     private PlaylistSongsDAO playlistSongsDAO;
+    private AlbumDAO albumDAO;
     private Label songTitleLabel;
     private Label artistNameLabel;
     private ProgressBar progressBar;
     private Label currentTimeLabel;
     private Label totalTimeLabel;
     private ListView<String> playlistList;
-    private Map<String, List<Song>> playlists = new HashMap<>();
+    private Map<String, Playlist> playlists = new HashMap<>();
+    private TabPane tabPane;
+    private List<Song> allSongs = new ArrayList<>();
 
     public MainPlayer(User user) {
         this.currentUser = user;
@@ -55,8 +62,11 @@ public class MainPlayer extends Application {
         this.artistDAO = new ArtistDAO();
         this.playlistDAO = new PlaylistDAO();
         this.playlistSongsDAO = new PlaylistSongsDAO();
+        this.albumDAO = new AlbumDAO();
+        this.songListView = new ListView<>();
         this.playlistList = new ListView<>();
-        loadUserPlaylists();
+        this.albumListView = new ListView<>();
+        this.artistListView = new ListView<>();
     }
 
     private void loadUserPlaylists() {
@@ -64,24 +74,34 @@ public class MainPlayer extends Application {
         List<Playlist> userPlaylists = playlistDAO.getPlaylistsByUser(currentUser.getUserId());
         System.out.println("Found " + userPlaylists.size() + " playlists in database.");
 
+        playlistList.getItems().clear();
+        playlists.clear(); // Clear the existing map
+
         for (Playlist playlist : userPlaylists) {
-            System.out.println("  Loading songs for playlist: " + playlist.getName() + " (ID: " + playlist.getPlaylistId() + ")");
-            List<Song> songs = playlistSongsDAO.getSongsInPlaylist(playlist.getPlaylistId());
-            System.out.println("    Found " + songs.size() + " songs for playlist " + playlist.getName());
-            playlists.put(playlist.getName(), songs);
+            System.out.println("  Loading playlist: " + playlist.getName() + " (ID: " + playlist.getPlaylistId() + ")");
+            // Get the songs for this playlist
+            List<Song> playlistSongs = playlistSongsDAO.getSongsInPlaylist(playlist.getPlaylistId());
+            System.out.println("  Found " + playlistSongs.size() + " songs in playlist " + playlist.getName());
+            playlist.setSongs(playlistSongs);
+            
             playlistList.getItems().add(playlist.getName());
-            System.out.println("    Playlist " + playlist.getName() + " added to UI and in-memory map.");
+            playlists.put(playlist.getName(), playlist);
         }
+        
         System.out.println("Finished loading user playlists.");
         playlistList.setPrefHeight(400);
         playlistList.setStyle("-fx-background-color: #282828;");
+        
         playlistList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
-                // Show selected playlist's songs
-                List<Song> playlistSongs = playlists.get(newVal);
-                if (playlistSongs != null) {
+                Playlist selectedPlaylist = playlists.get(newVal);
+                if (selectedPlaylist != null) {
+                    System.out.println("Selected playlist: " + selectedPlaylist.getName() + " (ID: " + selectedPlaylist.getPlaylistId() + ")");
+                    // Update songs view
                     songListView.getItems().clear();
-                    songListView.getItems().addAll(playlistSongs);
+                    songListView.getItems().addAll(selectedPlaylist.getSongs());
+                } else {
+                    System.out.println("Warning: Could not find playlist with name: " + newVal);
                 }
             }
         });
@@ -94,25 +114,23 @@ public class MainPlayer extends Application {
         // Create the main layout
         BorderPane mainLayout = new BorderPane();
 
-        // Left sidebar for playlists
-        VBox leftSidebar = createLeftSidebar();
-        mainLayout.setLeft(leftSidebar);
-
-        // Center content for song list
+        // Create all UI components first
         VBox centerContent = createCenterContent();
         mainLayout.setCenter(centerContent);
 
-        // Bottom player controls
+        VBox leftSidebar = createLeftSidebar();
+        mainLayout.setLeft(leftSidebar);
+
         HBox playerControls = createPlayerControls();
         mainLayout.setBottom(playerControls);
-
-        // Load songs from database
-        loadSongs();
 
         // Create the scene
         Scene scene = new Scene(mainLayout, 800, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        // Load data after UI is set up
+        loadAllData();
     }
 
     private VBox createLeftSidebar() {
@@ -196,8 +214,10 @@ public class MainPlayer extends Application {
                                 Song song = selectedSongs.get(i);
                                 playlistSongsDAO.addSongToPlaylist(playlist.getPlaylistId(), song.getSongId(), i + 1);
                             }
-                            // Update UI
-                            playlists.put(name, selectedSongs);
+                            // Set the songs in the playlist object
+                            playlist.setSongs(selectedSongs);
+                            // Update UI and local state
+                            playlists.put(name, playlist);
                             playlistList.getItems().add(name);
 
                         }
@@ -217,20 +237,39 @@ public class MainPlayer extends Application {
         // Search bar
         HBox searchBox = new HBox(10);
         searchField = new TextField();
-        searchField.setPromptText("Search songs...");
+        searchField.setPromptText("Search...");
         searchField.setPrefWidth(300);
         Button searchButton = new Button("Search");
         searchButton.setOnAction(e -> searchSongs());
         searchBox.getChildren().addAll(searchField, searchButton);
         searchBox.setAlignment(Pos.CENTER_LEFT);
 
-        // Song list
-        songListView = new ListView<>();
+        // Create TabPane
+        tabPane = new TabPane();
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+
+        // Songs Tab
+        Tab songsTab = new Tab("Songs");
         songListView.setPrefHeight(400);
         songListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         setupSongListView();
+        songsTab.setContent(songListView);
 
-        center.getChildren().addAll(searchBox, songListView);
+        // Albums Tab
+        Tab albumsTab = new Tab("Albums");
+        albumListView.setPrefHeight(400);
+        setupAlbumListView();
+        albumsTab.setContent(albumListView);
+
+        // Artists Tab
+        Tab artistsTab = new Tab("Artists");
+        artistListView.setPrefHeight(400);
+        setupArtistListView();
+        artistsTab.setContent(artistListView);
+
+        tabPane.getTabs().addAll(songsTab, albumsTab, artistsTab);
+
+        center.getChildren().addAll(searchBox, tabPane);
         return center;
     }
 
@@ -379,6 +418,94 @@ public class MainPlayer extends Application {
                 }
             }
         });
+    }
+
+    private void setupAlbumListView() {
+        albumListView.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(Album album, boolean empty) {
+                super.updateItem(album, empty);
+                if (empty || album == null) {
+                    setText(null);
+                } else {
+                    setText(album.getTitle());
+                }
+            }
+        });
+
+        albumListView.setOnMouseClicked(event -> {
+            Album selectedAlbum = albumListView.getSelectionModel().getSelectedItem();
+            if (selectedAlbum != null) {
+                System.out.println("Selected album: " + selectedAlbum.getTitle() + " (ID: " + selectedAlbum.getAlbumId() + ")");
+                List<Song> albumSongs = songDAO.getAllSongs().stream()
+                    .filter(song -> song.getAlbumId() != null && song.getAlbumId().equals(selectedAlbum.getAlbumId()))
+                    .toList();
+                System.out.println("Found " + albumSongs.size() + " songs for album");
+                songListView.getItems().clear();
+                songListView.getItems().addAll(albumSongs);
+                tabPane.getSelectionModel().select(0); // Switch to Songs tab
+            }
+        });
+    }
+
+    private void setupArtistListView() {
+        artistListView.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(Artist artist, boolean empty) {
+                super.updateItem(artist, empty);
+                if (empty || artist == null) {
+                    setText(null);
+                } else {
+                    setText(artist.getName());
+                }
+            }
+        });
+
+        artistListView.setOnMouseClicked(event -> {
+            Artist selectedArtist = artistListView.getSelectionModel().getSelectedItem();
+            if (selectedArtist != null) {
+                // Load albums for the selected artist
+                List<Album> artistAlbums = albumDAO.getAlbumsByArtist(selectedArtist.getArtistId());
+                albumListView.getItems().clear();
+                albumListView.getItems().addAll(artistAlbums);
+                tabPane.getSelectionModel().select(1); // Switch to Albums tab
+            }
+        });
+    }
+
+    private void loadAllData() {
+        // Load songs
+        System.out.println("Loading songs...");
+        allSongs = songDAO.getAllSongs();
+        songListView.getItems().clear();
+        songListView.getItems().addAll(allSongs);
+
+        // Load albums
+        System.out.println("Loading albums...");
+        List<Album> albums = new ArrayList<>();
+        // Get all albums directly from the database
+        allSongs.stream()
+            .filter(song -> song.getAlbumId() != null)
+            .map(Song::getAlbumId)
+            .distinct()
+            .forEach(albumId -> {
+                Album album = albumDAO.getAlbumById(albumId);
+                if (album != null) {
+                    System.out.println("Found album: " + album.getAlbumName());
+                    albums.add(album);
+                }
+            });
+        albumListView.getItems().clear();
+        albumListView.getItems().addAll(albums);
+
+        // Load artists
+        System.out.println("Loading artists...");
+        List<Artist> artists = artistDAO.getAllArtists();
+        artistListView.getItems().clear();
+        artistListView.getItems().addAll(artists);
+
+        // Load playlists
+        loadUserPlaylists();
     }
 
     private void showError(String message) {

@@ -42,11 +42,11 @@ CREATE TABLE IF NOT EXISTS playlists (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create playlist_songs table (junction table for playlists and songs)
-CREATE TABLE IF NOT EXISTS playlist_songs (
+-- Create PlaylistSongs table (junction table for playlists and songs)
+CREATE TABLE IF NOT EXISTS PlaylistSongs (
     playlist_id INTEGER REFERENCES playlists(playlist_id),
     song_id INTEGER REFERENCES songs(song_id),
-    position INTEGER NOT NULL,
+    order_in_playlist INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (playlist_id, song_id)
 ); 

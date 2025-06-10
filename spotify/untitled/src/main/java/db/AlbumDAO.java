@@ -15,7 +15,7 @@ public class AlbumDAO {
     }
 
     public Album addAlbum(Album album) {
-        String sql = "INSERT INTO albums (title, artist_id, release_year) VALUES (?, ?, ?) RETURNING album_id";
+        String sql = "INSERT INTO Albums (album_name, artist_id, release_year) VALUES (?, ?, ?) RETURNING album_id";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, album.getTitle());
             stmt.setInt(2, album.getArtistId());
@@ -38,14 +38,14 @@ public class AlbumDAO {
     }
 
     public Album getAlbumById(int albumId) {
-        String sql = "SELECT * FROM albums WHERE album_id = ?";
+        String sql = "SELECT * FROM Albums WHERE album_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, albumId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return new Album(
                             rs.getInt("album_id"),
-                            rs.getString("title"),
+                            rs.getString("album_name"),
                             rs.getInt("artist_id"),
                             rs.getInt("release_year")
                     );
@@ -59,14 +59,14 @@ public class AlbumDAO {
 
     public List<Album> getAlbumsByArtist(int artistId) {
         List<Album> albums = new ArrayList<>();
-        String sql = "SELECT * FROM albums WHERE artist_id = ? ORDER BY release_year DESC";
+        String sql = "SELECT * FROM Albums WHERE artist_id = ? ORDER BY release_year DESC";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, artistId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     albums.add(new Album(
                             rs.getInt("album_id"),
-                            rs.getString("title"),
+                            rs.getString("album_name"),
                             rs.getInt("artist_id"),
                             rs.getInt("release_year")
                     ));
@@ -79,9 +79,9 @@ public class AlbumDAO {
     }
 
     public boolean updateAlbum(Album album) {
-        String sql = "UPDATE albums SET title = ?, artist_id = ?, release_year = ? WHERE album_id = ?";
+        String sql = "UPDATE Albums SET album_name = ?, artist_id = ?, release_year = ? WHERE album_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, album.getTitle());
+            stmt.setString(1, album.getAlbumName());
             stmt.setInt(2, album.getArtistId());
             if (album.getReleaseYear() != null) {
                 stmt.setInt(3, album.getReleaseYear());
@@ -98,7 +98,7 @@ public class AlbumDAO {
     }
 
     public boolean deleteAlbum(int albumId) {
-        String sql = "DELETE FROM albums WHERE album_id = ?";
+        String sql = "DELETE FROM Albums WHERE album_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, albumId);
             int rowsAffected = stmt.executeUpdate();
