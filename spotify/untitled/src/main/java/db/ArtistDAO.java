@@ -39,7 +39,7 @@ public class ArtistDAO {
                 if (rs.next()) {
                     return new Artist(
                             rs.getInt("artist_id"),
-                            rs.getString("name")
+                            rs.getString("artist_name")
                     );
                 }
             }
@@ -51,13 +51,13 @@ public class ArtistDAO {
 
     public List<Artist> getAllArtists() {
         List<Artist> artists = new ArrayList<>();
-        String sql = "SELECT * FROM artists ORDER BY name";
+        String sql = "SELECT * FROM artists ORDER BY artist_name";
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 artists.add(new Artist(
                         rs.getInt("artist_id"),
-                        rs.getString("name")
+                        rs.getString("artist_name")
                 ));
             }
         } catch (SQLException e) {

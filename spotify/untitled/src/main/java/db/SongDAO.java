@@ -151,13 +151,42 @@ public class SongDAO {
     }
 
     private Song extractSongFromResultSet(ResultSet rs) throws SQLException {
+        // Retrieve the duration as a String and parse it
+        String durationString = rs.getString("duration");
+        Duration duration = parseDurationString(durationString);
+
         return new Song(
                 rs.getInt("song_id"),
                 rs.getString("title"),
                 rs.getInt("artist_id"),
                 rs.getInt("album_id"),
-                Duration.ofSeconds(rs.getInt("duration")),
+                duration,
                 rs.getString("file_path")
         );
+    }
+
+    // Helper method to parse "HH:MM:SS" or "MM:SS" duration string to java.time.Duration
+    private Duration parseDurationString(String durationStr) {
+        if (durationStr == null || durationStr.isEmpty()) {
+            return Duration.ZERO;
+        }
+        String[] parts = durationStr.split(":");
+        if (parts.length == 3) { // HH:MM:SS
+            long hours = Long.parseLong(parts[0]);
+            long minutes = Long.parseLong(parts[1]);
+            long seconds = Long.parseLong(parts[2]);
+            return Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds);
+        } else if (parts.length == 2) { // MM:SS
+            long minutes = Long.parseLong(parts[0]);
+            long seconds = Long.parseLong(parts[1]);
+            return Duration.ofMinutes(minutes).plusSeconds(seconds);
+        } else { // Assume it's just seconds or handle other formats as needed
+            try {
+                return Duration.ofSeconds(Long.parseLong(durationStr));
+            } catch (NumberFormatException e) {
+                System.err.println("Warning: Could not parse duration string: " + durationStr);
+                return Duration.ZERO;
+            }
+        }
     }
 }

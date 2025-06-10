@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class DatabaseConnection {
     private static final String URL = "jdbc:postgresql://localhost:5432/myspotify";
     private static final String USER = "postgres";
-    private static final String PASSWORD = "kaboodlecat";
+    private static final String PASSWORD = "1234";
     private static Connection connection = null;
 
     public static Connection getConnection() {
@@ -15,7 +15,9 @@ public class DatabaseConnection {
             try {
                 connection = DriverManager.getConnection(URL, USER, PASSWORD);
             } catch (SQLException e) {
+                System.err.println("Failed to connect to the database!");
                 e.printStackTrace();
+                throw new RuntimeException("Database connection failed", e);
             }
         }
         return connection;

@@ -79,16 +79,116 @@ CREATE INDEX idx_playlistsongs_playlist_id ON PlaylistSongs(playlist_id);
 CREATE INDEX idx_playlistsongs_song_id ON PlaylistSongs(song_id);
 CREATE INDEX idx_songs_title_artist ON Songs(title, artist_id);
 
--- Inserții simple pentru testare inițială (pot fi șterse sau ignorate după ce aplicația gestionează inserțiile)
+-- First, insert Billie Eilish as an artist
+INSERT INTO Artists (artist_name) 
+VALUES ('Billie Eilish')
+ON CONFLICT (artist_name) DO NOTHING
+RETURNING artist_id;
 
--- Asigură existența unui "Test Artist"
-INSERT INTO Artists (artist_name) VALUES ('Test Artist') ON CONFLICT (artist_name) DO NOTHING;
-
--- Asigură existența unui "Test Album" pentru "Test Artist"
--- Folosim DO NOTHING ON CONFLICT pentru a evita erorile dacă rulezi scriptul de mai multe ori
+-- Insert the album
 INSERT INTO Albums (album_name, artist_id, release_year)
-VALUES ('Test Album', (SELECT artist_id FROM Artists WHERE artist_name = 'Test Artist'), 2023)
-    ON CONFLICT (album_name, artist_id) DO NOTHING;
+SELECT 'WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?', 
+       (SELECT artist_id FROM Artists WHERE artist_name = 'Billie Eilish'),
+       2019
+ON CONFLICT (album_name, artist_id) DO NOTHING
+RETURNING album_id;
 
--- Notă: Nu se adaugă melodii sau utilizatori aici, deoarece aceștia vor fi gestionați de aplicație.
--- Vei adăuga utilizatori și melodii prin interfața aplicației tale Java.
+-- Insert all the songs
+INSERT INTO Songs (title, artist_id, album_id, duration, file_path)
+SELECT 
+    'bad guy',
+    (SELECT artist_id FROM Artists WHERE artist_name = 'Billie Eilish'),
+    (SELECT album_id FROM Albums WHERE album_name = 'WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?'),
+    INTERVAL '3 minutes 14 seconds',
+    'src/main/resources/music/bad guy.mp3'
+ON CONFLICT (title, artist_id) DO NOTHING;
+
+INSERT INTO Songs (title, artist_id, album_id, duration, file_path)
+SELECT 
+    'xanny',
+    (SELECT artist_id FROM Artists WHERE artist_name = 'Billie Eilish'),
+    (SELECT album_id FROM Albums WHERE album_name = 'WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?'),
+    INTERVAL '4 minutes',
+    'src/main/resources/music/xanny.mp3'
+ON CONFLICT (title, artist_id) DO NOTHING;
+
+INSERT INTO Songs (title, artist_id, album_id, duration, file_path)
+SELECT 
+    'you should see me in a crown',
+    (SELECT artist_id FROM Artists WHERE artist_name = 'Billie Eilish'),
+    (SELECT album_id FROM Albums WHERE album_name = 'WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?'),
+    INTERVAL '3 minutes',
+    'src/main/resources/music/you should see me in a crown.mp3'
+ON CONFLICT (title, artist_id) DO NOTHING;
+
+INSERT INTO Songs (title, artist_id, album_id, duration, file_path)
+SELECT 
+    'all the good girls go to hell',
+    (SELECT artist_id FROM Artists WHERE artist_name = 'Billie Eilish'),
+    (SELECT album_id FROM Albums WHERE album_name = 'WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?'),
+    INTERVAL '2 minutes 48 seconds',
+    'src/main/resources/music/all the good girls go to hell.mp3'
+ON CONFLICT (title, artist_id) DO NOTHING;
+
+INSERT INTO Songs (title, artist_id, album_id, duration, file_path)
+SELECT 
+    'wish you were gay',
+    (SELECT artist_id FROM Artists WHERE artist_name = 'Billie Eilish'),
+    (SELECT album_id FROM Albums WHERE album_name = 'WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?'),
+    INTERVAL '3 minutes 36 seconds',
+    'src/main/resources/music/Billie Eilish - wish you were gay (Official Audio).mp3'
+ON CONFLICT (title, artist_id) DO NOTHING;
+
+INSERT INTO Songs (title, artist_id, album_id, duration, file_path)
+SELECT 
+    '8',
+    (SELECT artist_id FROM Artists WHERE artist_name = 'Billie Eilish'),
+    (SELECT album_id FROM Albums WHERE album_name = 'WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?'),
+    INTERVAL '2 minutes 36 seconds',
+    'src/main/resources/music/8.mp3'
+ON CONFLICT (title, artist_id) DO NOTHING;
+
+INSERT INTO Songs (title, artist_id, album_id, duration, file_path)
+SELECT 
+    'my strange addiction',
+    (SELECT artist_id FROM Artists WHERE artist_name = 'Billie Eilish'),
+    (SELECT album_id FROM Albums WHERE album_name = 'WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?'),
+    INTERVAL '3 minutes',
+    'src/main/resources/music/my strange addiction.mp3'
+ON CONFLICT (title, artist_id) DO NOTHING;
+
+INSERT INTO Songs (title, artist_id, album_id, duration, file_path)
+SELECT 
+    'ilomilo',
+    (SELECT artist_id FROM Artists WHERE artist_name = 'Billie Eilish'),
+    (SELECT album_id FROM Albums WHERE album_name = 'WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?'),
+    INTERVAL '2 minutes 36 seconds',
+    'src/main/resources/music/ilomilo.mp3'
+ON CONFLICT (title, artist_id) DO NOTHING;
+
+INSERT INTO Songs (title, artist_id, album_id, duration, file_path)
+SELECT 
+    'listen before i go',
+    (SELECT artist_id FROM Artists WHERE artist_name = 'Billie Eilish'),
+    (SELECT album_id FROM Albums WHERE album_name = 'WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?'),
+    INTERVAL '4 minutes 36 seconds',
+    'src/main/resources/music/listen before i go.mp3'
+ON CONFLICT (title, artist_id) DO NOTHING;
+
+INSERT INTO Songs (title, artist_id, album_id, duration, file_path)
+SELECT 
+    'goodbye',
+    (SELECT artist_id FROM Artists WHERE artist_name = 'Billie Eilish'),
+    (SELECT album_id FROM Albums WHERE album_name = 'WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?'),
+    INTERVAL '2 minutes 12 seconds',
+    'src/main/resources/music/goodbye.mp3'
+ON CONFLICT (title, artist_id) DO NOTHING;
+
+INSERT INTO Songs (title, artist_id, album_id, duration, file_path)
+SELECT 
+    'i love you',
+    (SELECT artist_id FROM Artists WHERE artist_name = 'Billie Eilish'),
+    (SELECT album_id FROM Albums WHERE album_name = 'WHEN WE ALL FALL ASLEEP, WHERE DO WE GO?'),
+    INTERVAL '4 minutes 36 seconds',
+    'src/main/resources/music/i love you.mp3'
+ON CONFLICT (title, artist_id) DO NOTHING;

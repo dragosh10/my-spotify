@@ -13,10 +13,17 @@ import javafx.stage.Stage;
 import model.User;
 import model.Song;
 import model.Artist;
+import model.Playlist;
 import db.SongDAO;
 import db.ArtistDAO;
+import db.PlaylistDAO;
+import db.PlaylistSongsDAO;
 import java.util.List;
-import java.sql.SQLException;
+//import java.sql.SQLException;
+//import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ArrayList;
 
 public class MainPlayer extends Application {
     private User currentUser;
@@ -32,11 +39,52 @@ public class MainPlayer extends Application {
     private TextField searchField;
     private SongDAO songDAO;
     private ArtistDAO artistDAO;
+    private PlaylistDAO playlistDAO;
+    private PlaylistSongsDAO playlistSongsDAO;
+    private Label songTitleLabel;
+    private Label artistNameLabel;
+    private ProgressBar progressBar;
+    private Label currentTimeLabel;
+    private Label totalTimeLabel;
+    private ListView<String> playlistList;
+    private Map<String, List<Song>> playlists = new HashMap<>();
 
     public MainPlayer(User user) {
         this.currentUser = user;
         this.songDAO = new SongDAO();
         this.artistDAO = new ArtistDAO();
+        this.playlistDAO = new PlaylistDAO();
+        this.playlistSongsDAO = new PlaylistSongsDAO();
+        this.playlistList = new ListView<>();
+        loadUserPlaylists();
+    }
+
+    private void loadUserPlaylists() {
+        System.out.println("Attempting to load playlists for user: " + currentUser.getUsername() + " (ID: " + currentUser.getUserId() + ")");
+        List<Playlist> userPlaylists = playlistDAO.getPlaylistsByUser(currentUser.getUserId());
+        System.out.println("Found " + userPlaylists.size() + " playlists in database.");
+
+        for (Playlist playlist : userPlaylists) {
+            System.out.println("  Loading songs for playlist: " + playlist.getName() + " (ID: " + playlist.getPlaylistId() + ")");
+            List<Song> songs = playlistSongsDAO.getSongsInPlaylist(playlist.getPlaylistId());
+            System.out.println("    Found " + songs.size() + " songs for playlist " + playlist.getName());
+            playlists.put(playlist.getName(), songs);
+            playlistList.getItems().add(playlist.getName());
+            System.out.println("    Playlist " + playlist.getName() + " added to UI and in-memory map.");
+        }
+        System.out.println("Finished loading user playlists.");
+        playlistList.setPrefHeight(400);
+        playlistList.setStyle("-fx-background-color: #282828;");
+        playlistList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                // Show selected playlist's songs
+                List<Song> playlistSongs = playlists.get(newVal);
+                if (playlistSongs != null) {
+                    songListView.getItems().clear();
+                    songListView.getItems().addAll(playlistSongs);
+                }
+            }
+        });
     }
 
     @Override
@@ -76,14 +124,89 @@ public class MainPlayer extends Application {
         Label libraryLabel = new Label("Your Library");
         libraryLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
 
-        Button createPlaylistBtn = new Button("Create Playlist");
-        createPlaylistBtn.setMaxWidth(Double.MAX_VALUE);
+        // Home button
+        Button homeButton = new Button("Home");
+        homeButton.getStyleClass().add("control-button");
+        homeButton.setOnAction(e -> {
+            loadSongs(); // Reload all songs
+            playlistList.getSelectionModel().clearSelection(); // Deselect current playlist
+        });
 
-        ListView<String> playlistList = new ListView<>();
-        playlistList.setPrefHeight(400);
-        playlistList.setStyle("-fx-background-color: #282828;");
+        // Create playlist button
+        Button createPlaylistButton = new Button("Create Playlist");
+        createPlaylistButton.getStyleClass().add("control-button");
+        createPlaylistButton.setOnAction(e -> {
+            // Create dialog for playlist name
+            TextInputDialog nameDialog = new TextInputDialog();
+            nameDialog.setTitle("Create Playlist");
+            nameDialog.setHeaderText("Enter playlist name");
+            nameDialog.setContentText("Name:");
 
-        sidebar.getChildren().addAll(libraryLabel, createPlaylistBtn, playlistList);
+            nameDialog.showAndWait().ifPresent(name -> {
+                // Create dialog for song selection
+                Dialog<List<Song>> songDialog = new Dialog<>();
+                songDialog.setTitle("Select Songs");
+                songDialog.setHeaderText("Choose songs for playlist: " + name);
+
+                // Create a ListView for song selection
+                ListView<Song> songSelectionList = new ListView<>();
+                songSelectionList.getItems().addAll(songListView.getItems());
+                songSelectionList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+                songSelectionList.setCellFactory(lv -> new ListCell<>() {
+                    @Override
+                    protected void updateItem(Song song, boolean empty) {
+                        super.updateItem(song, empty);
+                        if (empty || song == null) {
+                            setText(null);
+                        } else {
+                            try {
+                                Artist artist = artistDAO.getArtistById(song.getArtistId());
+                                String artistName = artist != null ? artist.getName() : "Unknown Artist";
+                                setText(song.getTitle() + " - " + artistName);
+                            } catch (Exception e) {
+                                setText(song.getTitle() + " - Unknown Artist");
+                            }
+                        }
+                    }
+                });
+
+                // Add buttons
+                ButtonType createButtonType = new ButtonType("Create", ButtonBar.ButtonData.OK_DONE);
+                songDialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
+
+                // Set the content
+                songDialog.getDialogPane().setContent(songSelectionList);
+
+                // Convert the result to a list of selected songs
+                songDialog.setResultConverter(dialogButton -> {
+                    if (dialogButton == createButtonType) {
+                        return new ArrayList<>(songSelectionList.getSelectionModel().getSelectedItems());
+                    }
+                    return null;
+                });
+
+                // Show the dialog and handle the result
+                songDialog.showAndWait().ifPresent(selectedSongs -> {
+                    if (!selectedSongs.isEmpty()) {
+                        // Create playlist in database
+                        Playlist playlist = playlistDAO.createPlaylist(name, currentUser.getUserId());
+                        if (playlist != null) {
+                            // Add songs to playlist
+                            for (int i = 0; i < selectedSongs.size(); i++) {
+                                Song song = selectedSongs.get(i);
+                                playlistSongsDAO.addSongToPlaylist(playlist.getPlaylistId(), song.getSongId(), i + 1);
+                            }
+                            // Update UI
+                            playlists.put(name, selectedSongs);
+                            playlistList.getItems().add(name);
+
+                        }
+                    }
+                });
+            });
+        });
+
+        sidebar.getChildren().addAll(libraryLabel, homeButton, createPlaylistButton, playlistList);
         return sidebar;
     }
 
@@ -137,14 +260,14 @@ public class MainPlayer extends Application {
 
         // Add all controls
         controls.getChildren().addAll(
-            previousButton,
-            playButton,
-            pauseButton,
-            nextButton,
-            currentSongLabel,
-            progressSlider,
-            new Label("🔊"),
-            volumeSlider
+                previousButton,
+                playButton,
+                pauseButton,
+                nextButton,
+                currentSongLabel,
+                progressSlider,
+                new Label("🔊"),
+                volumeSlider
         );
 
         // Add event handlers
@@ -180,10 +303,15 @@ public class MainPlayer extends Application {
     }
 
     private void loadSongs() {
+        System.out.println("Attempting to load songs...");
         try {
             songListView.getItems().clear();
-            songListView.getItems().addAll(songDAO.getAllSongs());
+            List<Song> songs = songDAO.getAllSongs();
+            System.out.println("Found " + songs.size() + " songs.");
+            songListView.getItems().addAll(songs);
         } catch (Exception e) {
+            System.err.println("Error loading songs: " + e.getMessage());
+            e.printStackTrace();
             showError("Error loading songs", e.getMessage());
         }
     }
@@ -201,16 +329,21 @@ public class MainPlayer extends Application {
     private void playSelectedSong(Song song) {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
+            mediaPlayer.dispose(); // Dispose the old media player to release resources
         }
 
         try {
-            Media media = new Media(song.getFilePath());
+            // Convert the relative file path to an absolute URI
+            String absolutePath = new java.io.File(song.getFilePath()).getAbsolutePath();
+            Media media = new Media(new java.io.File(absolutePath).toURI().toString());
+
             mediaPlayer = new MediaPlayer(media);
             mediaPlayer.setVolume(volumeSlider.getValue());
             mediaPlayer.play();
             updateSongDisplay(song);
         } catch (Exception e) {
-            showError("Error playing song: " + e.getMessage());
+            showError("Error playing song", "Could not play song: " + e.getMessage() + "\nFile path: " + song.getFilePath());
+            e.printStackTrace();
         }
     }
 
@@ -264,4 +397,3 @@ public class MainPlayer extends Application {
         launch(args);
     }
 }
-

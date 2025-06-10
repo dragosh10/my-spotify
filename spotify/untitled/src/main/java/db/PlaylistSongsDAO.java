@@ -43,10 +43,11 @@ public class PlaylistSongsDAO {
 
     public List<Song> getSongsInPlaylist(int playlistId) {
         List<Song> songs = new ArrayList<>();
+        // Selectăm s.* și ordonăm după ps.position
         String sql = "SELECT s.* FROM songs s " +
-                    "JOIN playlist_songs ps ON s.song_id = ps.song_id " +
-                    "WHERE ps.playlist_id = ? " +
-                    "ORDER BY ps.position";
+                "JOIN playlist_songs ps ON s.song_id = ps.song_id " +
+                "WHERE ps.playlist_id = ? " +
+                "ORDER BY ps.position ASC";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, playlistId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -56,7 +57,7 @@ public class PlaylistSongsDAO {
                             rs.getString("title"),
                             rs.getInt("artist_id"),
                             rs.getInt("album_id"),
-                            Duration.ofSeconds(rs.getInt("duration")),
+                            Duration.ofSeconds(rs.getInt("duration")), // Presupunând că durata e int secunde
                             rs.getString("file_path")
                     ));
                 }
@@ -95,5 +96,21 @@ public class PlaylistSongsDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    // Metoda getNumberOfSongsInPlaylist este necesară
+    public int getNumberOfSongsInPlaylist(int playlistId) {
+        String sql = "SELECT COUNT(*) FROM playlist_songs WHERE playlist_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, playlistId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }
