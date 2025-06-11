@@ -105,8 +105,9 @@ public class MainPlayer extends Application {
         VBox leftSidebar = createLeftSidebar();
         mainLayout.setLeft(leftSidebar);
 
-        HBox playerControls = createPlayerControls();
-        mainLayout.setBottom(playerControls);
+        // Create shared player controls
+        sharedPlayerControls = createPlayerControls();
+        mainLayout.setBottom(sharedPlayerControls);
 
         Scene scene = new Scene(mainLayout, 1200, 800);
         String cssPath = getClass().getResource("/style.css").toExternalForm();
@@ -186,31 +187,58 @@ public class MainPlayer extends Application {
         controls.setAlignment(Pos.CENTER);
         controls.setPadding(new Insets(10));
 
+        // Left section - Current song info
+        VBox songInfo = new VBox(5);
         currentSongLabel = new Label("No song playing");
-        currentSongLabel.getStyleClass().add("current-song-label");
+        currentSongLabel.getStyleClass().addAll("current-song-label", "text-white");
+        songInfo.getChildren().add(currentSongLabel);
+
+        // Center section - Playback controls
+        HBox playbackControls = new HBox(10);
+        playbackControls.setAlignment(Pos.CENTER);
 
         playButton = new Button("▶");
-        playButton.getStyleClass().add("player-button");
+        playButton.getStyleClass().addAll("player-button", "control-button");
         playButton.setOnAction(e -> resumePlayback());
+        playButton.setDisable(true);  // Initially disabled
 
         pauseButton = new Button("⏸");
-        pauseButton.getStyleClass().add("player-button");
+        pauseButton.getStyleClass().addAll("player-button", "control-button");
         pauseButton.setOnAction(e -> pausePlayback());
+        pauseButton.setDisable(true);  // Initially disabled
+
+        playbackControls.getChildren().addAll(playButton, pauseButton);
+
+        // Right section - Volume control
+        HBox volumeControls = new HBox(10);
+        volumeControls.setAlignment(Pos.CENTER_RIGHT);
+
+        Label volumeIcon = new Label("🔊");
+        volumeIcon.getStyleClass().add("text-white");
 
         volumeSlider = new Slider(0, 100, 50);
         volumeSlider.getStyleClass().add("volume-slider");
+        volumeSlider.setPrefWidth(100);
         volumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (mediaPlayer != null) {
                 mediaPlayer.setVolume(newVal.doubleValue() / 100.0);
             }
         });
 
+        volumeControls.getChildren().addAll(volumeIcon, volumeSlider);
+
+        // Add all sections to the controls with spacers
+        Region leftSpacer = new Region();
+        Region rightSpacer = new Region();
+        HBox.setHgrow(leftSpacer, Priority.ALWAYS);
+        HBox.setHgrow(rightSpacer, Priority.ALWAYS);
+        
         controls.getChildren().addAll(
-                currentSongLabel,
-                playButton,
-                pauseButton,
-                new Label("Volume:"),
-                volumeSlider);
+                songInfo,
+                leftSpacer,
+                playbackControls,
+                rightSpacer,
+                volumeControls);
 
         return controls;
     }
@@ -401,6 +429,8 @@ public class MainPlayer extends Application {
         return box;
     }
 
+    private HBox sharedPlayerControls;
+
     private void showAlbumContent(Album album) {
         // Print debug information
         System.out.println("Showing content for album: " + album.getTitle() + " (ID: " + album.getAlbumId() + ")");
@@ -485,9 +515,29 @@ public class MainPlayer extends Application {
         }
 
         songsContainer.getChildren().addAll(songsHeader, songsList);
-        albumView.getChildren().addAll(backButton, header, songsContainer);
 
-        switchToView(albumView);
+        // Create a spacer to push the player controls to the bottom
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+        
+        // Create main layout that includes both content and player
+        VBox rootLayout = new VBox(0);
+        rootLayout.getStyleClass().add("main-layout");
+        
+        // Add main content
+        VBox mainContent = new VBox(20);
+        mainContent.getChildren().addAll(backButton, header, songsContainer, spacer);
+        mainContent.setStyle("-fx-background-color: #121212;"); // Dark background
+        VBox.setVgrow(mainContent, Priority.ALWAYS);
+        
+        // Set common style for player controls
+        sharedPlayerControls.getStyleClass().addAll("player-controls");
+        sharedPlayerControls.setPadding(new Insets(10));
+        sharedPlayerControls.setStyle("-fx-background-color: #282828;"); // Dark background like Spotify
+        
+        rootLayout.getChildren().addAll(mainContent, sharedPlayerControls);
+        
+        switchToView(rootLayout);
     }
 
     private void showArtistContent(Artist artist) {
@@ -543,8 +593,23 @@ public class MainPlayer extends Application {
         scrollPane.setFitToWidth(true);
         scrollPane.getStyleClass().add("scroll-pane");
 
-        artistView.getChildren().addAll(backButton, header, scrollPane);
-        switchToView(artistView);
+        // Create main layout that includes both content and player
+        VBox rootLayout = new VBox(0);
+        rootLayout.getStyleClass().add("main-layout");
+        
+        // Add main content
+        VBox mainContent = new VBox(20);
+        mainContent.getChildren().addAll(backButton, header, scrollPane);
+        VBox.setVgrow(mainContent, Priority.ALWAYS);
+        
+        // Set common style for player controls
+        sharedPlayerControls.getStyleClass().addAll("player-controls");
+        sharedPlayerControls.setPadding(new Insets(10));
+        sharedPlayerControls.setStyle("-fx-background-color: #282828;"); // Dark background like Spotify
+        
+        rootLayout.getChildren().addAll(mainContent, sharedPlayerControls);
+        
+        switchToView(rootLayout);
     }
 
     private HBox createSongRow(Song song, int number) {
@@ -559,8 +624,23 @@ public class MainPlayer extends Application {
     titleLabel.getStyleClass().add("song-title");
     HBox.setHgrow(titleLabel, Priority.ALWAYS);
 
-    // Use the existing getJavaFXDuration() method from Song class
-    javafx.util.Duration fxDuration = song.getJavaFXDuration();
+    // Get duration from the actual media file
+    javafx.util.Duration fxDuration;
+    try {
+        // Fix the file path to point to the correct location in resources
+        String resourcePath = "/music/" + song.getFilePath().substring(song.getFilePath().lastIndexOf('/') + 1);
+        String uri = getClass().getResource(resourcePath).toURI().toString();
+        Media media = new Media(uri);
+        MediaPlayer tempPlayer = new MediaPlayer(media);
+        fxDuration = media.getDuration();
+        tempPlayer.dispose(); // Clean up the temporary player
+        System.out.println("Successfully got duration for: " + song.getTitle() + " from: " + resourcePath);
+    } catch (Exception e) {
+        System.err.println("Error getting duration for " + song.getTitle() + ": " + e.getMessage());
+        // Fallback to the stored duration if media file can't be read
+        fxDuration = song.getJavaFXDuration();
+    }
+    
     String durationStr = String.format("%d:%02d",
             (int) fxDuration.toMinutes(),
             (int) (fxDuration.toSeconds() % 60));
@@ -570,7 +650,7 @@ public class MainPlayer extends Application {
     row.getChildren().addAll(numberLabel, titleLabel, durationLabel);
 
     row.setOnMouseClicked(event -> {
-        if (event.getClickCount() == 2) {
+        if (event.getClickCount() == 1) { // Changed to single click
             playSelectedSong(song);
         }
     });
@@ -586,9 +666,14 @@ public class MainPlayer extends Application {
 
     private void showMainView() {
         Platform.runLater(() -> {
-            // Create fresh content with new data
+            // Create main layout that includes both content and player
+            VBox rootLayout = new VBox(0);
+            rootLayout.getStyleClass().add("main-layout");
+            
+            // Create content area
             VBox centerContent = new VBox(20);
             centerContent.getStyleClass().add("content-area");
+            VBox.setVgrow(centerContent, Priority.ALWAYS);
 
             // Search bar
             HBox searchBox = new HBox(10);
@@ -625,9 +710,19 @@ public class MainPlayer extends Application {
             mainTabPane.getTabs().addAll(albumsTab, artistsTab);
             centerContent.getChildren().addAll(searchBox, mainTabPane);
 
+            // Add content and player controls to root layout
+            rootLayout.getChildren().addAll(centerContent);
+            
+            // Set common style for player controls
+            sharedPlayerControls.getStyleClass().addAll("player-controls");
+            sharedPlayerControls.setPadding(new Insets(10));
+            sharedPlayerControls.setStyle("-fx-background-color: #282828;"); // Dark background like Spotify
+            
+            rootLayout.getChildren().add(sharedPlayerControls);
+
             // Update the main content area
             mainContentArea.getChildren().clear();
-            mainContentArea.getChildren().add(centerContent);
+            mainContentArea.getChildren().add(rootLayout);
 
             // Reload playlists
             loadUserPlaylists();
@@ -847,9 +942,24 @@ public class MainPlayer extends Application {
         artistsTab.setContent(artistScroll);
 
         searchTabPane.getTabs().addAll(albumsTab, artistsTab);
-        searchResults.getChildren().addAll(backButton, searchTabPane);
-
-        switchToView(searchResults);
+        // Create main layout that includes both content and player
+        VBox rootLayout = new VBox(0);
+        rootLayout.getStyleClass().add("main-layout");
+        
+        // Add main content
+        VBox mainContent = new VBox(20);
+        mainContent.getChildren().addAll(backButton, searchTabPane);
+        mainContent.getStyleClass().add("content-area");
+        VBox.setVgrow(mainContent, Priority.ALWAYS);
+        
+        // Set common style for player controls
+        sharedPlayerControls.getStyleClass().addAll("player-controls");
+        sharedPlayerControls.setPadding(new Insets(10));
+        sharedPlayerControls.setStyle("-fx-background-color: #282828;"); // Dark background like Spotify
+        
+        rootLayout.getChildren().addAll(mainContent, sharedPlayerControls);
+        
+        switchToView(rootLayout);
     }
 
     // Removed unused grid update methods as they're no longer needed
@@ -859,29 +969,95 @@ public class MainPlayer extends Application {
     private void playSelectedSong(Song song) {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
+            mediaPlayer.dispose();
         }
 
         try {
-            Media media = new Media(song.getFilePath());
+            // Fix the file path to point to the correct location in resources
+            String resourcePath = "/music/" + song.getFilePath().substring(song.getFilePath().lastIndexOf('/') + 1);
+            String uri = getClass().getResource(resourcePath).toURI().toString();
+            System.out.println("Playing file from URI: " + uri);
+            
+            Media media = new Media(uri);
             mediaPlayer = new MediaPlayer(media);
+            
+            // Set volume
             mediaPlayer.setVolume(volumeSlider.getValue() / 100.0);
-            mediaPlayer.play();
-            currentSongLabel.setText("Now playing: " + song.getTitle());
+            
+            // Add listener for errors
+            mediaPlayer.setOnError(() -> {
+                System.err.println("Media player error: " + mediaPlayer.getError());
+                Platform.runLater(() -> {
+                    currentSongLabel.setText("Error playing: " + song.getTitle());
+                    playButton.setDisable(true);
+                    pauseButton.setDisable(true);
+                });
+            });
+            
+            // Update UI when media is ready
+            mediaPlayer.setOnReady(() -> {
+                Platform.runLater(() -> {
+                    // Set song info
+                    Artist artist = artistDAO.getArtistById(song.getArtistId());
+                    String artistName = artist != null ? artist.getName() : "Unknown Artist";
+                    currentSongLabel.setText(song.getTitle() + " - " + artistName);
+                    
+                    // Enable controls
+                    playButton.setDisable(false);
+                    pauseButton.setDisable(false);
+                    
+                    // Start playing
+                    mediaPlayer.play();
+                });
+            });
+            
+            // Setup button actions
+            playButton.setOnAction(e -> {
+                mediaPlayer.play();
+                playButton.setDisable(true);
+                pauseButton.setDisable(false);
+            });
+            
+            pauseButton.setOnAction(e -> {
+                mediaPlayer.pause();
+                playButton.setDisable(false);
+                pauseButton.setDisable(true);
+            });
+            
+            // Add listener for when song finishes
+            mediaPlayer.setOnEndOfMedia(() -> {
+                Platform.runLater(() -> {
+                    currentSongLabel.setText("No song playing");
+                    playButton.setDisable(true);
+                    pauseButton.setDisable(true);
+                });
+            });
+            
+            // Initial state
+            playButton.setDisable(true);
+            pauseButton.setDisable(false);
+            
         } catch (Exception e) {
             System.err.println("Error playing song: " + e.getMessage());
             currentSongLabel.setText("Error playing: " + song.getTitle());
+            playButton.setDisable(true);
+            pauseButton.setDisable(true);
         }
     }
 
     private void pausePlayback() {
         if (mediaPlayer != null) {
             mediaPlayer.pause();
+            playButton.setDisable(false);
+            pauseButton.setDisable(true);
         }
     }
 
     private void resumePlayback() {
         if (mediaPlayer != null) {
             mediaPlayer.play();
+            playButton.setDisable(true);
+            pauseButton.setDisable(false);
         }
     }
 
