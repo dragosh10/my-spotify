@@ -2,6 +2,8 @@
 package db;
 
 import model.Album;
+import model.Song;
+import java.time.Duration;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -15,7 +17,7 @@ public class AlbumDAO {
     }
 
     public Album addAlbum(Album album) {
-        String sql = "INSERT INTO Albums (album_name, artist_id, release_year) VALUES (?, ?, ?) RETURNING album_id";
+        String sql = "INSERT INTO Albums (album_name, artist_id, release_year, image_path) VALUES (?, ?, ?, ?) RETURNING album_id";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, album.getTitle());
             stmt.setInt(2, album.getArtistId());
@@ -24,6 +26,7 @@ public class AlbumDAO {
             } else {
                 stmt.setNull(3, Types.INTEGER);
             }
+            stmt.setString(4, album.getImagePath());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -47,8 +50,8 @@ public class AlbumDAO {
                             rs.getInt("album_id"),
                             rs.getString("album_name"),
                             rs.getInt("artist_id"),
-                            rs.getInt("release_year")
-                    );
+                            rs.getInt("release_year"),
+                            rs.getString("image_path"));
                 }
             }
         } catch (SQLException e) {
@@ -68,9 +71,31 @@ public class AlbumDAO {
                             rs.getInt("album_id"),
                             rs.getString("album_name"),
                             rs.getInt("artist_id"),
-                            rs.getInt("release_year")
-                    ));
+                            rs.getObject("release_year", Integer.class),
+                            rs.getString("image_path")));
                 }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return albums;
+    }
+
+    public List<Album> getAllAlbums() {
+        List<Album> albums = new ArrayList<>();
+        String sql = "SELECT * FROM Albums";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Album album = new Album(
+                        rs.getInt("album_id"),
+                        rs.getString("album_name"),
+                        rs.getInt("artist_id"),
+                        rs.getObject("release_year", Integer.class),
+                        rs.getString("image_path"));
+                albums.add(album);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -107,5 +132,44 @@ public class AlbumDAO {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public List<Song> getSongsInAlbum(int albumId) {
+        List<Song> songs = new ArrayList<>();
+        String query = "SELECT s.* FROM Songs s WHERE s.album_id = ?";
+        System.out.println("Fetching songs for album ID: " + albumId);
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, albumId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Duration duration;
+                    try {
+                        long seconds = rs.getLong("duration");
+                        duration = Duration.ofSeconds(seconds);
+                    } catch (Exception e) {
+                        duration = Duration.ZERO;
+                        System.err.println("Error parsing duration for song ID: " + rs.getInt("song_id"));
+                    }
+
+                    Song song = new Song(
+                            rs.getInt("song_id"),
+                            rs.getString("title"),
+                            rs.getInt("artist_id"),
+                            rs.getInt("album_id"),
+                            duration,
+                            rs.getString("file_path"));
+                    songs.add(song);
+                    System.out.println("Added song: " + song.getTitle() + " (ID: " + song.getSongId() + ")");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching songs for album: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        System.out.println("Found " + songs.size() + " songs for album ID: " + albumId);
+        return songs;
     }
 }

@@ -223,7 +223,7 @@
 /* If you want to use a background image, uncomment and set the image path below: */
 
 .login-image-pane {
-    -fx-background-image: url('/images/login.jpg');
+    -fx-background-image: url('images/login.jpg');
     -fx-background-size: cover;
     -fx-background-position: center center;
 }
@@ -292,4 +292,478 @@
 
 .register-button {
     -fx-font-weight: 500;  /* Medium */
+}
+
+/* Main Player styles */
+.main-player-root {
+    -fx-background-color: #121212;
+}
+
+/* Left sidebar styles */
+.sidebar {
+    -fx-background-color: #000000;
+    -fx-padding: 20;
+    -fx-spacing: 20;
+    -fx-min-width: 230px;
+    -fx-max-width: 230px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 2);
+}
+
+.library-label {
+    -fx-text-fill: #b3b3b3;
+    -fx-font-size: 16px;
+    -fx-font-family: 'Montserrat', sans-serif;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 10 0;
+}
+
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b3b3b3;
+    -fx-font-size: 14px;
+    -fx-padding: 10 15;
+    -fx-alignment: center-left;
+    -fx-font-family: 'Montserrat', sans-serif;
+    -fx-font-weight: 500;  /* Medium */
+    -fx-pref-width: 190px;
+    -fx-cursor: hand;
+}
+
+.sidebar-button:hover {
+    -fx-text-fill: white;
+}
+
+.sidebar-button:pressed {
+    -fx-text-fill: #1DB954;
+}
+
+.create-playlist-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b3b3b3;
+    -fx-font-size: 14px;
+    -fx-padding: 10 15;
+    -fx-alignment: center-left;
+    -fx-font-family: 'Montserrat', sans-serif;
+    -fx-font-weight: 500;
+    -fx-border-color: #b3b3b3;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-pref-width: 190px;
+    -fx-cursor: hand;
+}
+
+.create-playlist-button:hover {
+    -fx-text-fill: white;
+    -fx-border-color: white;
+}
+
+/* Content area styles */
+.content-area {
+    -fx-background-color: #121212;
+    -fx-padding: 20;
+}
+
+.search-box {
+    -fx-spacing: 10;
+    -fx-padding: 10;
+}
+
+.search-field {
+    -fx-background-color: #282828;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #b3b3b3;
+    -fx-padding: 12;
+    -fx-font-size: 14px;
+    -fx-background-radius: 20;
+    -fx-pref-width: 300;
+    -fx-font-family: 'Montserrat', sans-serif;
+}
+
+.search-field:focused {
+    -fx-background-color: #383838;
+    -fx-prompt-text-fill: #b3b3b3;
+}
+
+.search-button {
+    -fx-background-color: #1DB954;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 10 20;
+    -fx-background-radius: 20;
+    -fx-cursor: hand;
+    -fx-font-family: 'Montserrat', sans-serif;
+    -fx-font-weight: 600;  /* SemiBold */
+}
+
+.search-button:hover {
+    -fx-background-color: #1ed760;
+}
+
+/* TabPane styles */
+.tab-pane {
+    -fx-background-color: transparent;
+}
+
+.tab-pane .tab-header-area {
+    -fx-padding: 10 0 20 0;
+}
+
+.tab-pane .tab {
+    -fx-background-color: transparent;
+    -fx-padding: 10 20;
+}
+
+.tab-pane .tab-label {
+    -fx-text-fill: #b3b3b3;
+    -fx-font-size: 14px;
+    -fx-font-family: 'Montserrat', sans-serif;
+    -fx-font-weight: 500;  /* Medium */
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: white;
+}
+
+.tab-pane .tab:hover .tab-label {
+    -fx-text-fill: white;
+}
+
+.tab-pane .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+/* ListView styles */
+.list-view {
+    -fx-background-color: transparent;
+    -fx-padding: 10;
+}
+
+.list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b3b3b3;
+    -fx-padding: 12 15;
+    -fx-font-size: 14px;
+    -fx-font-family: 'Montserrat', sans-serif;
+}
+
+.list-view .list-cell:filled:hover {
+    -fx-background-color: #282828;
+    -fx-text-fill: white;
+}
+
+.list-view .list-cell:filled:selected {
+    -fx-background-color: #383838;
+    -fx-text-fill: white;
+}
+
+/* List cell styles */
+.list-cell-icon {
+    -fx-text-fill: #1DB954;
+    -fx-font-size: 16px;
+}
+
+.list-cell-title {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-family: 'Montserrat', sans-serif;
+    -fx-font-weight: 500;  /* Medium */
+}
+
+.list-cell-subtitle {
+    -fx-text-fill: #b3b3b3;
+    -fx-font-size: 12px;
+    -fx-font-family: 'Montserrat', sans-serif;
+    -fx-font-weight: normal;
+}
+
+/* Player controls */
+.player-controls {
+    -fx-background-color: #181818;
+    -fx-padding: 15;
+    -fx-spacing: 20;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, -2);
+}
+
+.control-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b3b3b3;
+    -fx-font-size: 20px;
+    -fx-padding: 10;
+    -fx-background-radius: 20;
+    -fx-cursor: hand;
+    -fx-min-width: 40px;
+    -fx-min-height: 40px;
+}
+
+.control-button:hover {
+    -fx-text-fill: white;
+}
+
+.play-button {
+    -fx-background-color: #1DB954;
+    -fx-text-fill: white;
+}
+
+.play-button:hover {
+    -fx-background-color: #1ed760;
+}
+
+.current-song-label {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-family: 'Montserrat', sans-serif;
+    -fx-font-weight: 500;  /* Medium */
+}
+
+.progress-slider .track {
+    -fx-background-color: #535353;
+    -fx-pref-height: 4;
+}
+
+.progress-slider .thumb {
+    -fx-background-color: white;
+    -fx-pref-height: 12;
+    -fx-pref-width: 12;
+}
+
+.volume-slider .track {
+    -fx-background-color: #535353;
+    -fx-pref-height: 4;
+}
+
+.volume-slider .thumb {
+    -fx-background-color: white;
+    -fx-pref-height: 12;
+    -fx-pref-width: 12;
+}
+
+/* Playlist styles */
+.playlist-list {
+    -fx-background-color: transparent;
+}
+
+.playlist-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b3b3b3;
+    -fx-padding: 10 15;
+    -fx-font-size: 14px;
+    -fx-font-family: 'Montserrat', sans-serif;
+}
+
+.playlist-list .list-cell:filled:hover {
+    -fx-background-color: #282828;
+    -fx-text-fill: white;
+}
+
+.playlist-list .list-cell:filled:selected {
+    -fx-background-color: #383838;
+    -fx-text-fill: white;
+}
+
+/* Dialog styles */
+.dialog-pane {
+    -fx-background-color: #282828;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: #181818;
+}
+
+.dialog-pane .content {
+    -fx-text-fill: white;
+    -fx-font-family: 'Montserrat', sans-serif;
+}
+
+.dialog-pane .button-bar .button {
+    -fx-background-color: #1DB954;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 8 15;
+    -fx-background-radius: 20;
+    -fx-cursor: hand;
+    -fx-font-family: 'Montserrat', sans-serif;
+    -fx-font-weight: 600;  /* SemiBold */
+}
+
+.dialog-pane .button-bar .button:hover {
+    -fx-background-color: #1ed760;
+}
+
+/* Grid View styles */
+.grid-view {
+    -fx-background-color: transparent;
+    -fx-hgap: 20;
+    -fx-vgap: 20;
+    -fx-padding: 20;
+}
+
+.grid-cell {
+    -fx-background-color: #282828;
+    -fx-background-radius: 8;
+    -fx-padding: 16;
+    -fx-pref-width: 200px;
+    -fx-pref-height: 270px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 0);
+    -fx-cursor: hand;
+}
+
+.grid-cell:hover {
+    -fx-background-color: #383838;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 12, 0, 0, 0);
+}
+
+.grid-cell-image {
+    -fx-fit-width: 168px;
+    -fx-fit-height: 168px;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 5, 0, 0, 0);
+}
+
+.grid-cell-title {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 0 4 0;
+}
+
+.grid-cell-subtitle {
+    -fx-text-fill: #b3b3b3;
+    -fx-font-size: 14px;
+    -fx-font-weight: normal;
+}
+
+/* Content Stack */
+.content-stack {
+    -fx-background-color: transparent;
+}
+
+/* Back button */
+.back-button {
+    -fx-background-color: rgba(0, 0, 0, 0.5);
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 8 16;
+    -fx-background-radius: 20;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+}
+
+.back-button:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Songs List in Album View */
+.album-songs-list {
+    -fx-background-color: transparent;
+    -fx-padding: 0 20 20 20;
+}
+
+.album-header {
+    -fx-background-color: transparent;
+    -fx-padding: 20;
+    -fx-spacing: 20;
+    -fx-alignment: center-left;
+}
+
+.album-cover {
+    -fx-fit-width: 232px;
+    -fx-fit-height: 232px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 0);
+}
+
+.album-info {
+    -fx-spacing: 8;
+}
+
+.album-title {
+    -fx-text-fill: white;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.album-artist {
+    -fx-text-fill: #b3b3b3;
+    -fx-font-size: 16px;
+}
+
+.song-row {
+    -fx-background-color: transparent;
+    -fx-padding: 10 15;
+}
+
+.song-row:hover {
+    -fx-background-color: #282828;
+}
+
+.song-number {
+    -fx-text-fill: #b3b3b3;
+    -fx-font-size: 14px;
+    -fx-min-width: 35px;
+}
+
+.song-title {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+.song-duration {
+    -fx-text-fill: #b3b3b3;
+    -fx-font-size: 14px;
+    -fx-text-alignment: right;
+    -fx-min-width: 50px;
+}
+
+/* Artist View styles */
+.artist-content {
+    -fx-background-color: #121212;
+    -fx-padding: 20;
+}
+
+.artist-header {
+    -fx-padding: 20;
+    -fx-spacing: 20;
+    -fx-alignment: center-left;
+}
+
+.artist-image {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 0);
+    -fx-background-radius: 50%;
+}
+
+.artist-info {
+    -fx-spacing: 8;
+}
+
+.artist-name {
+    -fx-text-fill: white;
+    -fx-font-size: 48px;
+    -fx-font-weight: bold;
+}
+
+/* Scroll Pane styles */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .scroll-bar:vertical {
+    -fx-background-color: #121212;
+}
+
+.scroll-pane > .scroll-bar:vertical > .thumb {
+    -fx-background-color: #535353;
+}
+
+.scroll-pane > .scroll-bar:vertical > .thumb:hover {
+    -fx-background-color: #636363;
+}
+
+.scroll-pane > .scroll-bar:vertical > .track {
+    -fx-background-color: #282828;
 }

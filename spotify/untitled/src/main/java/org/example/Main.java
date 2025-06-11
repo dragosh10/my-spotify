@@ -31,7 +31,7 @@ public class Main {
             System.out.println("Added artist: " + artist);
 
             // Test Album operations
-            Album album = new Album("Test Album " + System.currentTimeMillis(), artist.getArtistId(), 2025);
+            Album album = new Album("Test Album " + System.currentTimeMillis(), artist.getArtistId(), 2025, "/images/default-album.jpg");
             album = albumDao.addAlbum(album);
             System.out.println("Added album: " + album);
 

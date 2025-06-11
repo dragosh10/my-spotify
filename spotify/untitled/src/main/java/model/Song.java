@@ -60,6 +60,10 @@ public class Song {
         this.duration = duration;
     }
 
+    public javafx.util.Duration getJavaFXDuration() {
+        return javafx.util.Duration.seconds(duration.getSeconds());
+    }
+
     public String getFilePath() {
         return filePath;
     }

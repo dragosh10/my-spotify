@@ -6,20 +6,23 @@ public class Album {
     private String albumName; // Changed from title to match database
     private int artistId;
     private Integer releaseYear;
+    private String imagePath;  // New field for album cover image
 
     // Constructor complet, util la citirea din baza de date
-    public Album(int albumId, String albumName, int artistId, Integer releaseYear) {
+    public Album(int albumId, String albumName, int artistId, Integer releaseYear, String imagePath) {
         this.albumId = albumId;
         this.albumName = albumName;
         this.artistId = artistId;
         this.releaseYear = releaseYear;
+        this.imagePath = imagePath;
     }
 
     // Constructor pentru crearea unui Album nou, unde ID-ul este generat de DB
-    public Album(String albumName, int artistId, Integer releaseYear) {
+    public Album(String albumName, int artistId, Integer releaseYear, String imagePath) {
         this.albumName = albumName;
         this.artistId = artistId;
         this.releaseYear = releaseYear;
+        this.imagePath = imagePath;
     }
 
     // Getters
@@ -43,6 +46,10 @@ public class Album {
         return releaseYear;
     }
 
+    public String getImagePath() {
+        return imagePath != null ? "/images/" + imagePath : "/images/default-album.jpg";
+    }
+
     // Setters
     public void setAlbumId(int albumId) {
         this.albumId = albumId;
@@ -62,6 +69,10 @@ public class Album {
 
     public void setReleaseYear(Integer releaseYear) {
         this.releaseYear = releaseYear;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 
     @Override

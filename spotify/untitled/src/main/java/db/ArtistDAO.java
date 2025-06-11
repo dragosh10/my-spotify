@@ -37,13 +37,19 @@ public class ArtistDAO {
             stmt.setInt(1, artistId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Artist(
+                    Artist artist = new Artist(
                             rs.getInt("artist_id"),
-                            rs.getString("artist_name")
+                            rs.getString("artist_name"),
+                            rs.getString("image_path")
                     );
+                    System.out.println("Found artist: " + artist.getName() + " (ID: " + artist.getArtistId() + ")");
+                    return artist;
+                } else {
+                    System.out.println("No artist found with ID: " + artistId);
                 }
             }
         } catch (SQLException e) {
+            System.err.println("Error fetching artist with ID " + artistId + ": " + e.getMessage());
             e.printStackTrace();
         }
         return null;
