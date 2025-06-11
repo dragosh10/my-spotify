@@ -23,35 +23,37 @@ public class LoginScreen extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("MySpotify - Login");
 
-        // Create the main layout
-        VBox mainLayout = new VBox(10);
-        mainLayout.setPadding(new Insets(20));
-        mainLayout.setAlignment(Pos.CENTER);
-        mainLayout.setStyle("-fx-background-color: #282828;");
+        // Left: Image
+        StackPane imagePane = new StackPane();
+        imagePane.getStyleClass().add("login-image-pane");
+        // Example: set a background image via CSS, or use ImageView if you want
+        // ImageView imageView = new ImageView(new Image(getClass().getResource("/your-image.png").toExternalForm()));
+        // imageView.setFitWidth(400); imageView.setPreserveRatio(true);
+        // imagePane.getChildren().add(imageView);
 
-        // Create the form elements
-        Label titleLabel = new Label("Welcome to MySpotify");
-        titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px;");
+        // Right: Login form
+        VBox mainLayout = new VBox();
+        mainLayout.getStyleClass().add("login-container");
+
+        Label titleLabel = new Label("Welcome back!");
+        titleLabel.getStyleClass().add("login-title");
 
         usernameField = new TextField();
         usernameField.setPromptText("Username");
-        usernameField.setMaxWidth(300);
+        usernameField.getStyleClass().add("login-field");
 
         passwordField = new PasswordField();
         passwordField.setPromptText("Password");
-        passwordField.setMaxWidth(300);
+        passwordField.getStyleClass().add("login-field");
 
         Button loginButton = new Button("Login");
-        loginButton.setStyle("-fx-background-color: #1DB954; -fx-text-fill: white;");
-        loginButton.setMaxWidth(300);
+        loginButton.getStyleClass().add("login-button");
         loginButton.setOnAction(e -> handleLogin());
 
         Button registerButton = new Button("Create Account");
-        registerButton.setStyle("-fx-background-color: #535353; -fx-text-fill: white;");
-        registerButton.setMaxWidth(300);
+        registerButton.getStyleClass().add("register-button");
         registerButton.setOnAction(e -> showRegisterScreen(primaryStage));
 
-        // Add elements to layout
         mainLayout.getChildren().addAll(
             titleLabel,
             new Separator(),
@@ -62,8 +64,17 @@ public class LoginScreen extends Application {
             registerButton
         );
 
-        // Create and show the scene
-        Scene scene = new Scene(mainLayout, 400, 500);
+        // Split layout
+        HBox root = new HBox();
+        root.getStyleClass().add("login-root");
+        root.getChildren().addAll(imagePane, mainLayout);
+        HBox.setHgrow(imagePane, Priority.ALWAYS);
+        HBox.setHgrow(mainLayout, Priority.ALWAYS);
+
+        // Scene
+        Scene scene = new Scene(root, 800, 600);
+        String cssPath = getClass().getResource("/style.css").toExternalForm();
+        scene.getStylesheets().add(cssPath);
         primaryStage.setScene(scene);
         primaryStage.show();
     }

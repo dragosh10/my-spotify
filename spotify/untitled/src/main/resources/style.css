@@ -130,4 +130,166 @@
 
 .error-dialog .button-bar .button:hover {
     -fx-background-color: #1ed760;
-} 
+}
+
+/* Login screen styles */
+.login-container {
+    -fx-background-color: #121212;
+    -fx-padding: 40;
+    -fx-spacing: 20;
+    -fx-alignment: center;
+}
+
+.login-title {
+    -fx-text-fill: white;
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-font-family: 'Montserrat', sans-serif;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 2);
+}
+
+.login-field {
+    -fx-background-color: #282828;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #b3b3b3;
+    -fx-padding: 12;
+    -fx-pref-width: 300;
+    -fx-background-radius: 5;
+    -fx-font-size: 14px;
+    -fx-font-family: 'Montserrat', sans-serif;
+    -fx-font-weight: normal;
+}
+
+.login-field:focused {
+    -fx-background-color: #383838;
+    -fx-effect: dropshadow(gaussian, rgba(29, 185, 84, 0.3), 10, 0, 0, 0);
+}
+
+.login-button {
+    -fx-background-color: #1DB954;
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-padding: 12 30;
+    -fx-pref-width: 300;
+    -fx-background-radius: 25;
+    -fx-cursor: hand;
+    -fx-font-weight: 600;  /* SemiBold */
+    -fx-font-family: 'Montserrat', sans-serif;
+}
+
+.login-button:hover {
+    -fx-background-color: #1ed760;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 2);
+}
+
+.register-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b3b3b3;
+    -fx-font-size: 14px;
+    -fx-padding: 12 30;
+    -fx-pref-width: 300;
+    -fx-background-radius: 25;
+    -fx-cursor: hand;
+    -fx-border-color: #b3b3b3;
+    -fx-border-radius: 25;
+    -fx-font-family: 'Montserrat', sans-serif;
+    -fx-font-weight: 500;  /* Medium */
+}
+
+.register-button:hover {
+    -fx-text-fill: white;
+    -fx-border-color: white;
+}
+
+.separator {
+    -fx-background-color: #282828;
+    -fx-opacity: 0.5;
+}
+
+/* Login split root */
+.login-root {
+    -fx-background-color: #181818;
+}
+
+.login-image-pane {
+    -fx-background-color: linear-gradient(to bottom right, #232526, #414345);
+    -fx-min-width: 0px;
+    -fx-pref-width: 50%;
+    -fx-max-width: 1000px;
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+}
+
+/* If you want to use a background image, uncomment and set the image path below: */
+
+.login-image-pane {
+    -fx-background-image: url('/images/login.jpg');
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+}
+
+
+.login-container {
+    -fx-background-color: #121212;
+    -fx-padding: 40;
+    -fx-spacing: 20;
+    -fx-alignment: center;
+    -fx-pref-width: 50%;
+}
+
+/* Custom font loading */
+@font-face {
+    font-family: 'CustomFont';
+    src: url('/fonts/your-font.ttf');
+}
+
+/* Font definitions */
+@font-face {
+    font-family: 'Montserrat';
+    src: url('/fonts/Montserrat-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('/fonts/Montserrat-Bold.ttf');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('/fonts/Montserrat-Medium.ttf');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('/fonts/Montserrat-SemiBold.ttf');
+    font-weight: 600;
+    font-style: normal;
+}
+
+/* Apply Montserrat to all elements */
+.root {
+    -fx-font-family: 'Montserrat', sans-serif;
+}
+
+/* Update specific components to use different weights */
+.login-title {
+    -fx-font-weight: bold;
+}
+
+.login-field {
+    -fx-font-weight: normal;
+}
+
+.login-button {
+    -fx-font-weight: 600;  /* SemiBold */
+}
+
+.register-button {
+    -fx-font-weight: 500;  /* Medium */
+}
